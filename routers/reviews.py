@@ -11,7 +11,7 @@ router = APIRouter(prefix="/reviews", tags=["Reviews"])
 @router.post("/")
 def create_review(review: ReviewCreate, session: Session = Depends(get_session),user=Depends(get_current_user)):
     
-    if user["role"] != "PATIENT":
+    if user["role"] != "patient":
         raise HTTPException(status_code=403, detail="Not allowed")
    
    # vérifier RDV
