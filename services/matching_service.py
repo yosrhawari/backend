@@ -4,12 +4,12 @@ from models import Specialite, ProfilMedecin, RendezVous, Review
 
 def find_medecins_by_symptome(symptome: str, session: Session):
 
-    # récupérer toutes les spécialités
+    # récupérer spécialités el kol
     specialites = session.exec(select(Specialite)).all()
 
     matched_specialites = []
 
-    # matching simple
+    # matching aadyy
     for spec in specialites:
         mots = spec.mots_cles.lower().split(",")
 
@@ -18,7 +18,7 @@ def find_medecins_by_symptome(symptome: str, session: Session):
                 matched_specialites.append(spec.id)
                 break
 
-    # récupérer les médecins correspondants (validés seulement)
+    # récupérer les médecins ly validés mel admin khw
     if not matched_specialites:
         return []
 

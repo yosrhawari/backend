@@ -3,7 +3,12 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt 
 SECRET_KEY = "mysecretkey" 
 ALGORITHM = "HS256" 
+
+
 oauth2_scheme = HTTPBearer() 
+
+
+
 def get_current_user( credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme) ): 
     try: 
         token = credentials.credentials 

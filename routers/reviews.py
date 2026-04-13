@@ -4,34 +4,35 @@ from database import get_session
 from models import Review, RendezVous
 from schemas import ReviewCreate
 from utils.dependencies import get_current_user
+from utils.role_checker import require_role
 
 router = APIRouter(prefix="/reviews", tags=["Reviews"])
 
 # CREATE REVIEW
 @router.post("/")
-def create_review(review: ReviewCreate, session: Session = Depends(get_session),user=Depends(get_current_user)):
-    
-    if user["role"] != "patient":
-        raise HTTPException(status_code=403, detail="Not allowed")
-   
-   # vérifier RDV
+def create_review(
+    review: Review,
+    session: Session = Depends(get_session),
+    user = Depends(require_role("PATIENT"))
+):
     rdv = session.get(RendezVous, review.rendezvous_id)
-    
-    if not rdv:
-        raise HTTPException(status_code=404, detail="Rendez-vous introuvable")
 
-    if rdv.statut != "TERMINE":
-        raise HTTPException(
-            status_code=400,
-            detail="Impossible de noter sans consultation terminée"
-        )
-    
+    if not rdv or rdv.statut != "TERMINE":
+        raise HTTPException(status_code=400, detail="RDV not valid")
 
-    db_review = Review(**review.dict())
-    session.add(db_review)
+    # prevent duplicate review
+    existing = session.exec(
+        select(Review).where(Review.rendezvous_id == rdv.id)
+    ).first()
+
+    if existing:
+        raise HTTPException(status_code=400, detail="Already reviewed")
+
+    session.add(review)
     session.commit()
-    session.refresh(db_review)
-    return db_review
+    session.refresh(review)
+
+    return review
 
 # GET REVIEWS
 @router.get("/")
